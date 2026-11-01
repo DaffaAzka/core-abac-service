@@ -6,10 +6,21 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@better-auth/prisma-adapter": "^1.7.15",
+    "@casl/ability": "^7.1.1",
+    "@elysia/openapi": "^1.4.16",
+    "@prisma/adapter-pg": "7",
+    "@prisma/client": "7",
+    "better-auth": "^1.7.15",
+    "elysia": "latest",
+    "pg": "^8.23.1"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/pg": "^8.23.1",
+    "bun-types": "latest",
+    "dotenv": "^18.0.9",
+    "prisma": "7",
+    "typescript": "5"
   },
   "module": "src/index.js"
 }

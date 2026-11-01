@@ -40,3 +40,14 @@ yarn-error.log*
 **/*.log
 package-lock.json
 **/*.bun
+# local env
+.env
+
+/src/generated/prisma
+/.agents
+/.claude
+/.windsurf
+.agent
+.windsurf
+.prompt
+.prompts

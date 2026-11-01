@@ -1,0 +1,124 @@
+// Prisma schema for Better Auth and CASL-based ABAC/ACL/RBAC access control
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------------------------------------------
+// Better Auth Core Models
+// -----------------------------------------------------------------------------
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// -----------------------------------------------------------------------------
+// Access Control Models (RBAC, ABAC, ACL)
+// -----------------------------------------------------------------------------
+
+model AccessRole {
+  name        String           @id
+  description String?
+  parents     Json             @default("[]")
+  rules       Json             @default("[]")
+  updatedAt   DateTime         @default(now()) @updatedAt @map("updated_at")
+  userRoles   AccessUserRole[]
+
+  @@map("access_roles")
+}
+
+model AccessUserRole {
+  userId     String     @map("user_id")
+  role       String
+  createdAt  DateTime   @default(now()) @map("created_at")
+  roleRecord AccessRole @relation(fields: [role], references: [name], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userId, role])
+  @@index([userId])
+  @@map("access_user_roles")
+}
+
+model AccessPolicy {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  enabled   Boolean  @default(true)
+  priority  Int      @default(0)
+  target    Json?
+  rules     Json     @default("[]")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("access_policies")
+}
+
+model AccessGrant {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  rule      Json
+  expiresAt DateTime? @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("access_grants")
+}
